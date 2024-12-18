@@ -1,81 +1,98 @@
 <script lang="ts">
-  import { T } from '@threlte/core'
-  import { ContactShadows, Float, Grid, OrbitControls } from '@threlte/extras'
+  import { T, useTask, useThrelte } from "@threlte/core";
+  import { ContactShadows, HTML, OrbitControls, Stars } from "@threlte/extras";
+  import { CollisionGroups, Debug } from "@threlte/rapier";
+  import { spring } from "svelte/motion";
+  import { Mesh, PerspectiveCamera, Vector3 } from "three";
+  import Player from "./gameComponets/Player.svelte";
+  import Map from "./gameComponets/Map.svelte";
+  import Star from "./gameComponets/Star.svelte";
+  import Messages from "./gameComponets/Messages.svelte";
+
+  import Games from "./gameComponets/Games.svelte";
+  import Snoo from "./gameComponets/snoo.svelte";
+
+  import Text3d from "./gameComponets/Text.svelte";
+  import Lights from "./gameComponets/Lights.svelte";
+
+  let playerMesh: Mesh;
+  let positionHasBeenSet = false;
+  const smoothPlayerPosX = spring(0);
+  const smoothPlayerPosZ = spring(0);
+  const t3 = new Vector3();
+  useTask(() => {
+    if (!playerMesh) return;
+    playerMesh.getWorldPosition(t3);
+    smoothPlayerPosX.set(t3.x, {
+      hard: !positionHasBeenSet,
+    });
+    smoothPlayerPosZ.set(t3.z, {
+      hard: !positionHasBeenSet,
+    });
+    if (!positionHasBeenSet) positionHasBeenSet = true;
+  });
 </script>
 
 <T.PerspectiveCamera
   makeDefault
-  position={[-10, 10, 10]}
-  fov={15}
+  position={[10, 10, 10]}
+  on:create={({ ref }) => ref.lookAt(0, 1, 0)}
 >
   <OrbitControls
-    autoRotate
-    enableZoom={false}
-    enableDamping
     autoRotateSpeed={0.5}
-    target.y={1.5}
+    enableZoom={true}
+    enablePan={true}
+    maxPolarAngle={Math.PI / 2}
+    target={[0, 1, 0]}
   />
 </T.PerspectiveCamera>
 
-<T.DirectionalLight
-  intensity={0.8}
-  position.x={5}
-  position.y={10}
-/>
+<!-- Luces -->
+<T.DirectionalLight intensity={0.2} position.x={5} position.y={10} />
 <T.AmbientLight intensity={0.2} />
 
-<Grid
-  position.y={-0.001}
-  cellColor="#ffffff"
-  sectionColor="#ffffff"
-  sectionThickness={0}
-  fadeDistance={25}
-  cellSize={2}
+<!-- Sombras -->
+<ContactShadows scale={10} blur={2} far={2.5} opacity={0.5} />
+
+<!-- Debug -->
+<!-- <Debug depthTest={false} depthWrite={false} /> -->
+
+<!-- Terreno -->
+<!-- <CollisionGroups groups={[0, 15]}>
+  <Ground />
+</CollisionGroups> -->
+
+<!-- Jugador -->
+<!-- <CollisionGroups groups={[0]}>
+    <Player bind:playerMesh position={[0, 2, 0]} />
+  </CollisionGroups> -->
+
+<!-- UI -->
+<!-- <HTML transform position={[0, 2, 0]}>
+  <h1 class="text-3xl text-white select-none">Hello World</h1>
+</HTML> -->
+
+<!-- <CollisionGroups groups={[0]}>
+  <Cube bind:playerMesh position={[0, 5, 0]} />
+<</CollisionGroups> -->
+>
+<Messages />
+<Star />
+<Stars />
+<Map />
+<Snoo />
+<Games />
+<Lights />
+
+<Text3d
+  text="Merry Christmas"
+  position={[-4.2, 4.7, 15]}
+  scale={[4.5, 4.5, 4.5]}
+  rotation={[0, 0, 0]}
 />
 
-<ContactShadows
-  scale={10}
-  blur={2}
-  far={2.5}
-  opacity={0.5}
-/>
+<!-- <Quiz position={[7, 3, 0]} rotation={[0, -0.2, 0]} scale={[0.5, 0.5, 0.5]} /> -->
 
-<Float
-  floatIntensity={1}
-  floatingRange={[0, 1]}
->
-  <T.Mesh
-    position.y={1.2}
-    position.z={-0.75}
-  >
-    <T.BoxGeometry />
-    <T.MeshStandardMaterial color="#0059BA" />
-  </T.Mesh>
-</Float>
-
-<Float
-  floatIntensity={1}
-  floatingRange={[0, 1]}
->
-  <T.Mesh
-    position={[1.2, 1.5, 0.75]}
-    rotation.x={5}
-    rotation.y={71}
-  >
-    <T.TorusKnotGeometry args={[0.5, 0.15, 100, 12, 2, 3]} />
-    <T.MeshStandardMaterial color="#F85122" />
-  </T.Mesh>
-</Float>
-
-<Float
-  floatIntensity={1}
-  floatingRange={[0, 1]}
->
-  <T.Mesh
-    position={[-1.4, 1.5, 0.75]}
-    rotation={[-5, 128, 10]}
-  >
-    <T.IcosahedronGeometry />
-    <T.MeshStandardMaterial color="#F8EBCE" />
-  </T.Mesh>
-</Float>
+<CollisionGroups groups={[0]}>
+  <Player bind:playerMesh position={[0, 10, 21]} />
+</CollisionGroups>
